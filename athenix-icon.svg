@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6C63FF"/>
+      <stop offset="100%" stop-color="#48CAE4"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#48CAE4"/>
+      <stop offset="100%" stop-color="#6C63FF"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6C63FF" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#48CAE4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sfondo scuro -->
+  <rect width="100" height="100" rx="22" fill="#0a0a14"/>
+
+  <!-- Gemma -->
+  <polygon points="50,12 62,38 50,46 38,38" fill="#3B35A0" opacity="0.7"/>
+  <polygon points="50,12 38,38 50,46" fill="url(#g1)" opacity="0.95"/>
+  <polygon points="50,12 62,38 50,46" fill="url(#g2)" opacity="0.9"/>
+  <polygon points="50,46 38,38 44,82" fill="url(#g3)" opacity="0.85"/>
+  <polygon points="50,46 62,38 56,82" fill="url(#g1)" opacity="0.75"/>
+
+  <!-- Riflesso in cima -->
+  <polygon points="50,12 56,28 50,33 44,28" fill="#ffffff" opacity="0.3"/>
+
+  <!-- Punti di luce -->
+  <circle cx="50" cy="12" r="2" fill="#ffffff" opacity="0.9"/>
+  <circle cx="38" cy="38" r="1.5" fill="#6C63FF" opacity="0.9"/>
+  <circle cx="62" cy="38" r="1.5" fill="#48CAE4" opacity="0.9"/>
+  <circle cx="50" cy="82" r="2" fill="#48CAE4" opacity="0.8"/>
+</svg>

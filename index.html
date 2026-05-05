@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Athenix</title>
+  <link rel="icon" href="athenix-icon.svg" type="image/svg+xml">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { min-height: 100vh; background: #0a0a0f; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', sans-serif; color: #ffffff; padding: 40px 24px; }
+    .logo { font-size: 52px; font-weight: 800; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; margin-bottom: 8px; }
+    .tagline { font-size: 15px; color: #6b7280; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
+    .container { width: 100%; max-width: 560px; }
+    .auth-card { background: #12121a; border: 1px solid #1e1e2e; border-radius: 20px; padding: 36px; box-shadow: 0 0 60px rgba(108, 99, 255, 0.08); }
+    .auth-tabs { display: flex; background: #0a0a0f; border: 1px solid #1e1e2e; border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+    .auth-tab { flex: 1; padding: 10px; border: none; border-radius: 8px; background: transparent; color: #6b7280; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .auth-tab.active { background: linear-gradient(135deg, #6C63FF, #48CAE4); color: #ffffff; }
+    .auth-panel { display: none; }
+    .auth-panel.active { display: block; }
+    .auth-title { font-size: 20px; font-weight: 700; color: #e2e8f0; margin-bottom: 24px; }
+    .card { background: #12121a; border: 1px solid #1e1e2e; border-radius: 20px; padding: 36px; box-shadow: 0 0 60px rgba(108, 99, 255, 0.08); }
+    .card h2 { font-size: 17px; font-weight: 600; color: #e2e8f0; margin-bottom: 24px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 11px; font-weight: 600; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    input { width: 100%; padding: 13px 15px; background: #0a0a0f; border: 1px solid #1e1e2e; border-radius: 12px; color: #ffffff; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: #6C63FF; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+    .btn { width: 100%; padding: 15px; margin-top: 6px; background: linear-gradient(135deg, #6C63FF, #48CAE4); border: none; border-radius: 12px; color: #ffffff; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); }
+    .btn.loading { opacity: 0.6; cursor: not-allowed; }
+    .error-box { margin-top: 16px; padding: 13px 15px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; color: #f87171; font-size: 14px; display: none; }
+    .success-box { margin-top: 16px; padding: 13px 15px; background: rgba(29, 158, 117, 0.1); border: 1px solid rgba(29, 158, 117, 0.3); border-radius: 12px; color: #34d399; font-size: 14px; display: none; }
+    .utente-header { background: #12121a; border: 1px solid #1e1e2e; border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .utente-nome { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .utente-email { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .btn-logout { background: none; border: 1px solid #1e1e2e; border-radius: 8px; color: #6b7280; font-size: 12px; font-weight: 600; padding: 6px 14px; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { border-color: #f87171; color: #f87171; }
+    .xp-card { background: #12121a; border: 1px solid #1e1e2e; border-radius: 20px; padding: 24px 28px; margin-bottom: 16px; box-shadow: 0 0 60px rgba(108, 99, 255, 0.08); }
+    .xp-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .xp-sinistra { display: flex; flex-direction: column; }
+    .xp-livello-label { font-size: 11px; font-weight: 600; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; }
+    .xp-livello-valore { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-top: 2px; }
+    .xp-titolo { font-size: 11px; font-weight: 700; color: #6C63FF; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; background: rgba(108, 99, 255, 0.12); border: 1px solid rgba(108, 99, 255, 0.25); border-radius: 20px; padding: 3px 10px; display: inline-block; }
+    .xp-right { display: flex; gap: 12px; align-items: center; }
+    .xp-badge { background: rgba(108, 99, 255, 0.15); border: 1px solid rgba(108, 99, 255, 0.3); border-radius: 12px; padding: 8px 16px; text-align: center; }
+    .xp-badge-valore { font-size: 22px; font-weight: 800; color: #6C63FF; }
+    .xp-badge-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .streak-badge { background: rgba(239, 158, 39, 0.15); border: 1px solid rgba(239, 158, 39, 0.3); border-radius: 12px; padding: 8px 16px; text-align: center; }
+    .streak-badge-valore { font-size: 22px; font-weight: 800; color: #EF9F27; }
+    .streak-badge-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+    .progress-track { width: 100%; height: 8px; background: #1e1e2e; border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
+    .progress-fill { height: 100%; background: linear-gradient(135deg, #6C63FF, #48CAE4); border-radius: 99px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-studia { width: 100%; padding: 14px; background: linear-gradient(135deg, #6C63FF, #48CAE4); border: none; border-radius: 12px; color: #ffffff; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
+    .btn-studia:hover { opacity: 0.88; }
+    .btn-studia:active { transform: scale(0.98); }
+    .btn-studia.cooldown { background: #1e1e2e; color: #4b5563; cursor: not-allowed; opacity: 1; }
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: #12121a; border: 1px solid rgba(108, 99, 255, 0.4); border-radius: 14px; padding: 14px 24px; font-size: 14px; font-weight: 600; color: #6C63FF; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .levelup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .levelup-overlay.show { opacity: 1; pointer-events: all; }
+    .levelup-box { background: #12121a; border: 1px solid rgba(108, 99, 255, 0.5); border-radius: 24px; padding: 48px 40px; text-align: center; max-width: 320px; transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .levelup-overlay.show .levelup-box { transform: scale(1); }
+    .levelup-emoji { font-size: 52px; margin-bottom: 16px; }
+    .levelup-titolo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .levelup-sub { font-size: 15px; color: #6b7280; margin-bottom: 12px; }
+    .levelup-nuovo-titolo { font-size: 13px; font-weight: 700; color: #6C63FF; letter-spacing: 2px; text-transform: uppercase; background: rgba(108, 99, 255, 0.12); border: 1px solid rgba(108, 99, 255, 0.25); border-radius: 20px; padding: 6px 16px; display: inline-block; margin-bottom: 28px; }
+    .btn-chiudi { padding: 12px 32px; background: linear-gradient(135deg, #6C63FF, #48CAE4); border: none; border-radius: 12px; color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .tabs { display: flex; background: #12121a; border: 1px solid #1e1e2e; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; background: transparent; color: #6b7280; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, #6C63FF, #48CAE4); color: #ffffff; }
+    .tab-btn .tab-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 11px; padding: 1px 7px; margin-left: 4px; }
+    .tab-btn:not(.active) .tab-badge { background: rgba(108,99,255,0.15); color: #6C63FF; }
+    .panel { display: none; animation: fadeIn 0.3s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .result-box { margin-top: 20px; padding: 28px; background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(72,202,228,0.08)); border: 1px solid rgba(108, 99, 255, 0.3); border-radius: 16px; text-align: center; display: none; animation: fadeIn 0.5s ease; }
+    .result-label { font-size: 11px; font-weight: 600; color: #6b7280; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+    .result-main { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 6px; }
+    .result-sub { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
+    .result-stats { display: flex; justify-content: center; gap: 28px; }
+    .stat { text-align: center; }
+    .stat-value { font-size: 20px; font-weight: 700; color: #e2e8f0; }
+    .stat-label { font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .divider-v { width: 1px; background: #1e1e2e; align-self: stretch; }
+    .empty-state { text-align: center; padding: 48px 0; color: #4b5563; font-size: 14px; line-height: 1.8; }
+    .esame-item { background: #0a0a0f; border: 1px solid #1e1e2e; border-radius: 14px; padding: 18px; margin-bottom: 12px; animation: fadeIn 0.4s ease; transition: border-color 0.2s; }
+    .esame-item:hover { border-color: rgba(108, 99, 255, 0.4); }
+    .esame-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .esame-nome { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .esame-cfu { font-size: 12px; font-weight: 700; color: #48CAE4; background: rgba(72, 202, 228, 0.1); padding: 3px 10px; border-radius: 20px; }
+    .esame-info { display: flex; gap: 12px; font-size: 12px; color: #6b7280; margin-bottom: 10px; }
+    .esame-piano { font-size: 13px; color: #6C63FF; font-weight: 600; }
+    .esame-piano.errore { color: #f87171; }
+    .btn-delete { background: none; border: none; color: #4b5563; font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color 0.2s, background 0.2s; line-height: 1; margin-left: 8px; }
+    .btn-delete:hover { color: #f87171; background: rgba(239, 68, 68, 0.1); }
+    .pomo-stato { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #6C63FF; background: rgba(108, 99, 255, 0.12); border: 1px solid rgba(108, 99, 255, 0.25); border-radius: 20px; padding: 4px 16px; }
+    .pomo-stato.pausa { color: #48CAE4; background: rgba(72, 202, 228, 0.12); border-color: rgba(72, 202, 228, 0.25); }
+    .pomo-timer { font-size: 80px; font-weight: 800; text-align: center; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; margin: 16px 0; line-height: 1; }
+    .pomo-track { width: 100%; height: 6px; background: #1e1e2e; border-radius: 99px; overflow: hidden; margin-bottom: 32px; }
+    .pomo-fill { height: 100%; background: linear-gradient(135deg, #6C63FF, #48CAE4); border-radius: 99px; transition: width 1s linear; }
+    .pomo-fill.pausa { background: linear-gradient(135deg, #48CAE4, #6C63FF); }
+    .pomo-controlli { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .pomo-btn { border: none; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s, transform 0.1s; }
+    .pomo-btn:active { transform: scale(0.95); }
+    .pomo-btn:hover { opacity: 0.85; }
+    .pomo-play { width: 72px; height: 72px; background: linear-gradient(135deg, #6C63FF, #48CAE4); color: #ffffff; font-size: 24px; }
+    .pomo-reset, .pomo-skip { width: 48px; height: 48px; background: #1e1e2e; color: #6b7280; font-size: 18px; }
+    .pomo-stats { display: flex; justify-content: center; align-items: center; gap: 24px; padding: 20px; background: #0a0a0f; border-radius: 14px; margin-bottom: 16px; }
+    .pomo-stat { text-align: center; }
+    .pomo-stat-valore { font-size: 24px; font-weight: 800; color: #e2e8f0; }
+    .pomo-stat-label { font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .pomo-stat-divider { width: 1px; height: 40px; background: #1e1e2e; }
+    .pomo-messaggio { text-align: center; font-size: 14px; font-weight: 600; color: #6C63FF; min-height: 24px; animation: fadeIn 0.4s ease; }
+
+    /* ── ACHIEVEMENTS ── */
+    .ach-header { margin-bottom: 24px; }
+    .ach-titolo { font-size: 20px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .ach-sub { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+    .ach-progresso-info { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+    .ach-progresso-track { width: 100%; height: 8px; background: #1e1e2e; border-radius: 99px; overflow: hidden; margin-bottom: 24px; }
+    .ach-progresso-fill { height: 100%; background: linear-gradient(135deg, #6C63FF, #48CAE4); border-radius: 99px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .ach-griglia { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (min-width: 480px) { .ach-griglia { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Card achievement */
+    .ach-card { background: #0a0a0f; border: 1px solid #1e1e2e; border-radius: 16px; padding: 16px; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+    .ach-card:hover { transform: scale(1.03); }
+    .ach-card:active { transform: scale(0.97); }
+
+    /* Sbloccato */
+    .ach-card.sbloccato { border-color: rgba(108, 99, 255, 0.5); box-shadow: 0 0 20px rgba(108, 99, 255, 0.15); }
+    .ach-card.sbloccato:hover { box-shadow: 0 0 32px rgba(108, 99, 255, 0.3); border-color: rgba(108, 99, 255, 0.8); }
+
+    /* Bloccato */
+    .ach-card.bloccato { opacity: 0.45; filter: grayscale(0.6); }
+    .ach-card.bloccato:hover { opacity: 0.6; transform: scale(1.01); }
+
+    .ach-emoji { font-size: 32px; margin-bottom: 10px; display: block; }
+    .ach-nome { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; line-height: 1.3; }
+    .ach-desc { font-size: 11px; color: #6b7280; line-height: 1.5; margin-bottom: 10px; }
+
+    /* Badge sbloccato */
+    .ach-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; }
+    .ach-badge.sbloccato { background: rgba(108, 99, 255, 0.15); color: #6C63FF; border: 1px solid rgba(108, 99, 255, 0.3); }
+    .ach-badge.bloccato { background: rgba(75, 85, 99, 0.2); color: #4b5563; border: 1px solid rgba(75, 85, 99, 0.3); }
+
+    /* Lucchetto overlay sui bloccati */
+    .ach-lock { position: absolute; top: 10px; right: 10px; font-size: 14px; opacity: 0.4; }
+
+    /* Overlay achievement sbloccato */
+    .ach-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .ach-overlay.show { opacity: 1; pointer-events: all; }
+    .ach-overlay-box { background: #12121a; border: 1px solid rgba(108, 99, 255, 0.5); border-radius: 24px; padding: 40px 36px; text-align: center; max-width: 300px; width: 90%; transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 0 60px rgba(108, 99, 255, 0.3); }
+    .ach-overlay.show .ach-overlay-box { transform: scale(1); }
+    .ach-overlay-emoji { font-size: 64px; margin-bottom: 12px; display: block; animation: pulse 0.6s ease; }
+    @keyframes pulse { 0% { transform: scale(0.5); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .ach-overlay-titolo { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #6C63FF; margin-bottom: 8px; }
+    .ach-overlay-nome { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #6C63FF, #48CAE4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .ach-overlay-desc { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+    .ach-overlay-btn { padding: 12px 28px; background: linear-gradient(135deg, #6C63FF, #48CAE4); border: none; border-radius: 12px; color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="logo">Athenix</div>
+  <div class="tagline">Study. Win. Repeat.</div>
+  <div class="container">
+
+    <!-- AUTH -->
+    <div id="schermataAuth">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="cambiaAuthTab('login')">Accedi</button>
+          <button class="auth-tab" onclick="cambiaAuthTab('registra')">Registrati</button>
+        </div>
+        <div class="auth-panel active" id="auth-panel-login">
+          <div class="auth-title">Bentornato!</div>
+          <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="mario@esempio.it" /></div>
+          <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
+          <button class="btn" onclick="login()">Accedi</button>
+          <div class="error-box" id="login-error"></div>
+        </div>
+        <div class="auth-panel" id="auth-panel-registra">
+          <div class="auth-title">Crea il tuo account</div>
+          <div class="field"><label>Nome</label><input type="text" id="reg-nome" placeholder="Mario Rossi" /></div>
+          <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="mario@esempio.it" /></div>
+          <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="••••••••" /></div>
+          <button class="btn" onclick="registra()">Crea account</button>
+          <div class="error-box" id="reg-error"></div>
+          <div class="success-box" id="reg-success"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="schermataApp" style="display:none">
+      <div class="utente-header">
+        <div>
+          <div class="utente-nome" id="utente-nome">—</div>
+          <div class="utente-email" id="utente-email">—</div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Esci</button>
+      </div>
+
+      <div class="xp-card">
+        <div class="xp-top">
+          <div class="xp-sinistra">
+            <div class="xp-livello-label">Livello attuale</div>
+            <div class="xp-livello-valore" id="xpLivello">1</div>
+            <div class="xp-titolo" id="xpTitolo">Matricola</div>
+          </div>
+          <div class="xp-right">
+            <div class="streak-badge">
+              <div class="streak-badge-valore" id="xpStreak">0</div>
+              <div class="streak-badge-label">Streak</div>
+            </div>
+            <div class="xp-badge">
+              <div class="xp-badge-valore" id="xpValore">0</div>
+              <div class="xp-badge-label">XP totali</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-info">
+          <span id="progressLabel">0 XP verso il prossimo livello</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <button class="btn-studia" id="btnStudia" onclick="studia()">⚡ Ho studiato oggi &nbsp;+50 XP</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-form" onclick="cambiaTab('form')">Calcola piano</button>
+        <button class="tab-btn" id="tab-lista" onclick="cambiaTab('lista')">Esami <span class="tab-badge" id="badge">0</span></button>
+        <button class="tab-btn" id="tab-pomodoro" onclick="cambiaTab('pomodoro')">Pomodoro</button>
+        <button class="tab-btn" id="tab-obiettivi" onclick="cambiaTab('obiettivi')">🏆</button>
+      </div>
+
+      <!-- PANNELLO FORM -->
+      <div class="panel active" id="panel-form">
+        <div class="card">
+          <h2>Calcola il tuo piano di studio</h2>
+          <div class="field"><label>Nome esame</label><input type="text" id="nome" placeholder="es. Analisi Matematica" /></div>
+          <div class="field"><label>CFU</label><input type="number" id="cfu" placeholder="es. 9" min="1" max="30" /></div>
+          <div class="field"><label>Data esame</label><input type="date" id="data" /></div>
+          <button class="btn" id="btnCalcola" onclick="calcolaPiano()">Calcola piano</button>
+          <div class="error-box" id="errorBox"></div>
+          <div class="result-box" id="resultBox">
+            <div class="result-label">Devi studiare ogni giorno</div>
+            <div class="result-main" id="oreGiornaliere">—</div>
+            <div class="result-sub" id="messaggioSub"></div>
+            <div class="result-stats">
+              <div class="stat"><div class="stat-value" id="oreTotali">—</div><div class="stat-label">Ore totali</div></div>
+              <div class="divider-v"></div>
+              <div class="stat"><div class="stat-value" id="giorniDisponibili">—</div><div class="stat-label">Giorni rimasti</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANNELLO POMODORO -->
+      <div class="panel" id="panel-pomodoro">
+        <div class="card">
+          <div style="text-align:center; margin-bottom:8px"><span class="pomo-stato" id="pomoStato">Studio</span></div>
+          <div class="pomo-timer" id="pomoTimer">25:00</div>
+          <div class="pomo-track"><div class="pomo-fill" id="pomoFill" style="width:0%"></div></div>
+          <div class="pomo-controlli">
+            <button class="pomo-btn pomo-reset" onclick="resetPomodoro()">↺</button>
+            <button class="pomo-btn pomo-play" id="pomoPlayBtn" onclick="togglePomodoro()">▶</button>
+            <button class="pomo-btn pomo-skip" onclick="saltaFase()">⏭</button>
+          </div>
+          <div class="pomo-stats">
+            <div class="pomo-stat"><div class="pomo-stat-valore" id="pomoCount">0</div><div class="pomo-stat-label">Pomodori</div></div>
+            <div class="pomo-stat-divider"></div>
+            <div class="pomo-stat"><div class="pomo-stat-valore" id="pomoXpGiorno">0</div><div class="pomo-stat-label">XP oggi</div></div>
+            <div class="pomo-stat-divider"></div>
+            <div class="pomo-stat"><div class="pomo-stat-valore" id="pomoMinuti">0</div><div class="pomo-stat-label">Minuti</div></div>
+          </div>
+          <div class="pomo-messaggio" id="pomoMessaggio"></div>
+        </div>
+      </div>
+
+      <!-- PANNELLO LISTA -->
+      <div class="panel" id="panel-lista">
+        <div class="card">
+          <h2>I tuoi esami</h2>
+          <div id="listaEsami"><div class="empty-state">Nessun esame ancora.<br/>Aggiungine uno dalla tab "Calcola piano"!</div></div>
+        </div>
+      </div>
+
+      <!-- PANNELLO OBIETTIVI -->
+      <div class="panel" id="panel-obiettivi">
+        <div class="card">
+          <div class="ach-header">
+            <div class="ach-titolo">I tuoi obiettivi</div>
+            <div class="ach-sub">Continua così per sbloccare nuovi traguardi</div>
+            <div class="ach-progresso-info">
+              <span id="achProgressoTesto">0 / 20 obiettivi sbloccati</span>
+              <span id="achProgressoPercent">0%</span>
+            </div>
+            <div class="ach-progresso-track">
+              <div class="ach-progresso-fill" id="achProgressoFill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="ach-griglia" id="achGriglia">
+            <div class="empty-state">Caricamento obiettivi...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- LEVEL UP OVERLAY -->
+  <div class="levelup-overlay" id="levelupOverlay">
+    <div class="levelup-box">
+      <div class="levelup-emoji">🎉</div>
+      <div class="levelup-titolo">Level Up!</div>
+      <div class="levelup-sub" id="levelupSub">Sei al livello 2</div>
+      <div class="levelup-nuovo-titolo" id="levelupNuovoTitolo">Matricola</div>
+      <button class="btn-chiudi" onclick="chiudiLevelUp()">Continua</button>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENT SBLOCCATO OVERLAY -->
+  <div class="ach-overlay" id="achOverlay">
+    <div class="ach-overlay-box">
+      <span class="ach-overlay-emoji" id="achOverlayEmoji">🏆</span>
+      <div class="ach-overlay-titolo">Achievement sbloccato!</div>
+      <div class="ach-overlay-nome" id="achOverlayNome">—</div>
+      <div class="ach-overlay-desc" id="achOverlayDesc">—</div>
+      <button class="ach-overlay-btn" onclick="chiudiAchOverlay()">Ottimo! 🎉</button>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://athenix-backend.onrender.com/api";
+    let utente = null;
+
+    window.onload = () => {
+      const salvato = localStorage.getItem("athenix_utente");
+      if (salvato) {
+        utente = JSON.parse(salvato);
+        mostraApp();
+      }
+      aggiornaTimerUI();
+    };
+
+    function cambiaAuthTab(tab) {
+      document.querySelectorAll(".auth-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".auth-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`.auth-tab:${tab === 'login' ? 'first-child' : 'last-child'}`).classList.add("active");
+      document.getElementById(`auth-panel-${tab}`).classList.add("active");
+    }
+
+    async function registra() {
+      const nome = document.getElementById("reg-nome").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const errBox = document.getElementById("reg-error");
+      const okBox = document.getElementById("reg-success");
+      errBox.style.display = "none"; okBox.style.display = "none";
+      if (!nome || !email || !password) { errBox.textContent = "Compila tutti i campi."; errBox.style.display = "block"; return; }
+      try {
+        const res = await fetch(`${API}/auth/registra`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome, email, password }) });
+        const data = await res.json();
+        if (data.success) { okBox.textContent = "Account creato! Ora accedi."; okBox.style.display = "block"; setTimeout(() => cambiaAuthTab("login"), 1500); }
+        else { errBox.textContent = data.message || "Errore nella registrazione."; errBox.style.display = "block"; }
+      } catch { errBox.textContent = "Errore di connessione al server."; errBox.style.display = "block"; }
+    }
+
+    async function login() {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const errBox = document.getElementById("login-error");
+      errBox.style.display = "none";
+      if (!email || !password) { errBox.textContent = "Inserisci email e password."; errBox.style.display = "block"; return; }
+      try {
+        const res = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+        const data = await res.json();
+        if (data.success) { utente = data; localStorage.setItem("athenix_utente", JSON.stringify(utente)); mostraApp(); }
+        else { errBox.textContent = data.message || "Credenziali non corrette."; errBox.style.display = "block"; }
+      } catch { errBox.textContent = "Errore di connessione al server."; errBox.style.display = "block"; }
+    }
+
+    function logout() {
+      utente = null;
+      localStorage.removeItem("athenix_utente");
+      cancellaStatoTimer();
+      document.getElementById("schermataApp").style.display = "none";
+      document.getElementById("schermataAuth").style.display = "block";
+    }
+
+    function mostraApp() {
+      document.getElementById("schermataAuth").style.display = "none";
+      document.getElementById("schermataApp").style.display = "block";
+      document.getElementById("utente-nome").textContent = utente.nome;
+      document.getElementById("utente-email").textContent = utente.email;
+      aggiornaXpUI();
+      caricaEsami();
+      ripristinaTimer();
+      caricaAchievements();
+      if (Notification.permission === "default") Notification.requestPermission();
+    }
+
+    function inviaNotifica(titolo, messaggio, emoji) {
+      if (Notification.permission === "granted") {
+        new Notification(`${emoji} ${titolo}`, { body: messaggio, icon: "athenix-icon.svg" });
+      }
+    }
+
+    function aggiornaXpUI() {
+      const xp = utente.xp || 0;
+      const livello = utente.livello || 1;
+      const streak = utente.streak || 0;
+      const titolo = utente.titolo || "Matricola";
+      document.getElementById("xpLivello").textContent = livello;
+      document.getElementById("xpValore").textContent = xp;
+      document.getElementById("xpStreak").textContent = streak;
+      document.getElementById("xpTitolo").textContent = titolo;
+      const xpLivelloCorrente = xpPerRaggiungere(livello);
+      const xpProssimoLivello = xpPerRaggiungere(livello + 1);
+      const xpNelLivello = xp - xpLivelloCorrente;
+      const xpNecessari = xpProssimoLivello - xpLivelloCorrente;
+      const percentuale = Math.round((xpNelLivello / xpNecessari) * 100);
+      document.getElementById("progressFill").style.width = percentuale + "%";
+      document.getElementById("progressPercent").textContent = percentuale + "%";
+      document.getElementById("progressLabel").textContent = `${xpNelLivello} / ${xpNecessari} XP verso il livello ${livello + 1}`;
+      const oggi = new Date().toDateString();
+      const ultimoStudio = utente.ultimoStudio;
+      const dataUltimo = ultimoStudio ? new Date(ultimoStudio + 'T00:00:00').toDateString() : null;
+      const btn = document.getElementById("btnStudia");
+      if (dataUltimo === oggi) { btn.classList.add("cooldown"); btn.textContent = "✓ Studiato oggi"; btn.disabled = true; }
+      else { btn.classList.remove("cooldown"); btn.textContent = "⚡ Ho studiato oggi   +50 XP"; btn.disabled = false; }
+    }
+
+    function xpPerRaggiungere(livello) {
+      let totale = 0;
+      for (let i = 1; i < livello; i++) totale += Math.round(100 * Math.pow(i, 1.5));
+      return totale;
+    }
+
+    async function studia() {
+      try {
+        const vecchioLivello = utente.livello;
+        const vecchioTitolo = utente.titolo;
+        const res = await fetch(`${API}/auth/studia`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ utenteId: utente.id }) });
+        const data = await res.json();
+        if (data.success) {
+          utente.xp = data.xp; utente.livello = data.livello; utente.streak = data.streak;
+          utente.titolo = data.titolo; utente.ultimoStudio = data.ultimoStudio;
+          localStorage.setItem("athenix_utente", JSON.stringify(utente));
+          aggiornaXpUI();
+          mostraToast(`+50 XP guadagnati! Streak: ${data.streak} giorni 🔥`);
+          if (data.livello > vecchioLivello) {
+            setTimeout(() => {
+              document.getElementById("levelupSub").textContent = `Sei al livello ${data.livello} 🚀`;
+              document.getElementById("levelupNuovoTitolo").textContent = data.titolo !== vecchioTitolo ? `Nuovo titolo: ${data.titolo}` : data.titolo;
+              document.getElementById("levelupOverlay").classList.add("show");
+            }, 800);
+          }
+          // Controlla achievement dopo lo studio
+          const ora = new Date().getHours();
+          await controllaAchievements({ ora, giorniTotali: data.giorniTotali || 0 });
+        } else { mostraToast(data.message || "Hai già studiato oggi!"); }
+      } catch { mostraToast("Errore di connessione al server."); }
+    }
+
+    function chiudiLevelUp() { document.getElementById("levelupOverlay").classList.remove("show"); }
+
+    function cambiaTab(tab) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(`tab-${tab}`).classList.add("active");
+      document.getElementById(`panel-${tab}`).classList.add("active");
+      if (tab === 'obiettivi') caricaAchievements();
+    }
+
+    function mostraToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg; toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function mostraErrore(msg) { const box = document.getElementById("errorBox"); box.textContent = msg; box.style.display = "block"; document.getElementById("resultBox").style.display = "none"; }
+    function nascondiErrore() { document.getElementById("errorBox").style.display = "none"; }
+    function formattaData(dataStr) { const [anno, mese, giorno] = dataStr.split("-"); return `${giorno}/${mese}/${anno}`; }
+
+    async function calcolaPiano() {
+      nascondiErrore();
+      const nome = document.getElementById("nome").value.trim();
+      const cfu = parseInt(document.getElementById("cfu").value);
+      const data = document.getElementById("data").value;
+      if (!nome) return mostraErrore("Inserisci il nome dell'esame.");
+      if (!cfu || cfu < 1) return mostraErrore("Inserisci un numero di CFU valido.");
+      if (!data) return mostraErrore("Inserisci la data dell'esame.");
+      const oggi = new Date(); oggi.setHours(0, 0, 0, 0);
+      if (new Date(data) <= oggi) return mostraErrore("La data deve essere nel futuro.");
+      const btn = document.getElementById("btnCalcola");
+      btn.textContent = "Calcolo in corso..."; btn.classList.add("loading"); btn.disabled = true;
+      try {
+        const postRes = await fetch(`${API}/esami`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome, cfu, data, utenteId: utente.id }) });
+        if (!postRes.ok) throw new Error("Errore nella creazione dell'esame.");
+        const esame = await postRes.json();
+        const pianoRes = await fetch(`${API}/esami/${esame.id}/piano`);
+        const piano = await pianoRes.json();
+        if (!piano.success) throw new Error(piano.message);
+        document.getElementById("oreGiornaliere").textContent = piano.data.oreGiornaliereFormattate;
+        document.getElementById("messaggioSub").textContent = `per superare ${nome}`;
+        document.getElementById("oreTotali").textContent = piano.data.oreTotali + "h";
+        document.getElementById("giorniDisponibili").textContent = piano.data.giorniDisponibili;
+        const resultBox = document.getElementById("resultBox");
+        resultBox.style.display = "block"; resultBox.style.animation = "none"; resultBox.offsetHeight; resultBox.style.animation = "fadeIn 0.5s ease";
+        document.getElementById("nome").value = ""; document.getElementById("cfu").value = ""; document.getElementById("data").value = "";
+        await caricaEsami();
+        // Controlla achievement esami
+        const esami = await fetch(`${API}/esami?utenteId=${utente.id}`).then(r => r.json());
+        await controllaAchievements({ numEsami: esami.length });
+        setTimeout(() => cambiaTab("lista"), 2000);
+      } catch (err) { mostraErrore(err.message || "Errore di connessione."); }
+      finally { btn.textContent = "Calcola piano"; btn.classList.remove("loading"); btn.disabled = false; }
+    }
+
+    async function caricaEsami() {
+      if (!utente) return;
+      try {
+        const res = await fetch(`${API}/esami?utenteId=${utente.id}`);
+        const esami = await res.json();
+        const container = document.getElementById("listaEsami");
+        document.getElementById("badge").textContent = esami.length;
+        if (esami.length === 0) { container.innerHTML = `<div class="empty-state">Nessun esame ancora.<br/>Aggiungine uno dalla tab "Calcola piano"!</div>`; return; }
+        container.innerHTML = "";
+        for (const esame of esami) { const item = await creaItemEsame(esame); container.appendChild(item); }
+      } catch (err) { console.error("Errore caricamento esami:", err); }
+    }
+
+    async function creaItemEsame(esame) {
+      const div = document.createElement("div");
+      div.className = "esame-item"; div.id = `esame-${esame.id}`;
+      let pianoHtml = "";
+      try {
+        const pianoRes = await fetch(`${API}/esami/${esame.id}/piano`);
+        const piano = await pianoRes.json();
+        pianoHtml = piano.success
+          ? `<div class="esame-piano">Studia ${piano.data.oreGiornaliereFormattate}/giorno &nbsp;·&nbsp; ${piano.data.giorniDisponibili} giorni rimasti</div>`
+          : `<div class="esame-piano errore">Data esame passata</div>`;
+      } catch { pianoHtml = `<div class="esame-piano errore">Piano non disponibile</div>`; }
+      div.innerHTML = `
+        <div class="esame-top">
+          <div class="esame-nome">${esame.nome}</div>
+          <div style="display:flex;align-items:center">
+            <span class="esame-cfu">${esame.cfu} CFU</span>
+            <button class="btn-delete" onclick="eliminaEsame(${esame.id})" title="Elimina">×</button>
+          </div>
+        </div>
+        <div class="esame-info"><span>Esame il ${formattaData(esame.data)}</span><span>·</span><span>${esame.cfu * 25}h totali</span></div>
+        ${pianoHtml}`;
+      return div;
+    }
+
+    async function eliminaEsame(id) {
+      try {
+        await fetch(`${API}/esami/${id}`, { method: "DELETE" });
+        document.getElementById(`esame-${id}`)?.remove();
+        const items = document.querySelectorAll(".esame-item").length;
+        document.getElementById("badge").textContent = items;
+        if (items === 0) document.getElementById("listaEsami").innerHTML = `<div class="empty-state">Nessun esame ancora.<br/>Aggiungine uno dalla tab "Calcola piano"!</div>`;
+      } catch (err) { console.error("Errore eliminazione:", err); }
+    }
+
+    // ── ACHIEVEMENTS ──────────────────────────────────────
+    async function caricaAchievements() {
+      if (!utente) return;
+      try {
+        const res = await fetch(`${API}/achievements?utenteId=${utente.id}`);
+        const achievements = await res.json();
+        renderAchievements(achievements);
+      } catch (err) { console.error("Errore caricamento achievements:", err); }
+    }
+
+    function renderAchievements(achievements) {
+      const griglia = document.getElementById("achGriglia");
+      const totale = achievements.length;
+      const sbloccati = achievements.filter(a => a.sbloccato).length;
+      const percentuale = Math.round((sbloccati / totale) * 100);
+
+      document.getElementById("achProgressoTesto").textContent = `${sbloccati} / ${totale} obiettivi sbloccati`;
+      document.getElementById("achProgressoPercent").textContent = percentuale + "%";
+      document.getElementById("achProgressoFill").style.width = percentuale + "%";
+
+      griglia.innerHTML = "";
+      achievements.forEach(ach => {
+        const card = document.createElement("div");
+        card.className = `ach-card ${ach.sbloccato ? 'sbloccato' : 'bloccato'}`;
+        card.innerHTML = `
+          <span class="ach-emoji">${ach.emoji}</span>
+          <div class="ach-nome">${ach.nome}</div>
+          <div class="ach-desc">${ach.descrizione}</div>
+          <span class="ach-badge ${ach.sbloccato ? 'sbloccato' : 'bloccato'}">
+            ${ach.sbloccato ? '✓ Sbloccato' : '🔒 Bloccato'}
+          </span>
+        `;
+        griglia.appendChild(card);
+      });
+    }
+
+    async function controllaAchievements(contesto) {
+      if (!utente) return;
+      try {
+        const body = { utenteId: utente.id, ...contesto };
+        const res = await fetch(`${API}/achievements/controlla`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.nuoviSbloccati && data.nuoviSbloccati.length > 0) {
+          // Mostra gli achievement sbloccati uno alla volta
+          for (const ach of data.nuoviSbloccati) {
+            await mostraAchievementSbloccato(ach);
+          }
+          // Ricarica la lista
+          caricaAchievements();
+        }
+      } catch (err) { console.error("Errore controllo achievements:", err); }
+    }
+
+    function mostraAchievementSbloccato(ach) {
+      return new Promise(resolve => {
+        document.getElementById("achOverlayEmoji").textContent = ach.emoji;
+        document.getElementById("achOverlayNome").textContent = ach.nome;
+        document.getElementById("achOverlayDesc").textContent = ach.descrizione;
+        document.getElementById("achOverlay").classList.add("show");
+        suonaNotifica('studio');
+        document.getElementById("achOverlay").dataset.resolve = "pending";
+        window._achResolve = resolve;
+      });
+    }
+
+    function chiudiAchOverlay() {
+      document.getElementById("achOverlay").classList.remove("show");
+      if (window._achResolve) { window._achResolve(); window._achResolve = null; }
+    }
+
+    // ── POMODORO ──────────────────────────────────────────
+    const DURATA_STUDIO = 25 * 60;
+    const DURATA_PAUSA = 5 * 60;
+    let pomoInterval = null;
+    let pomoSecondi = DURATA_STUDIO;
+    let pomoInPausa = false;
+    let pomoAttivo = false;
+    let pomoCount = 0;
+    let pomoConsecutivi = 0;
+    let pomoTotali = parseInt(localStorage.getItem("pomo_totali") || "0");
+    let pomoMinutiTotali = 0;
+    let pomoXpGiorno = 0;
+    let pomoUltimoMinuto = 0;
+    let pomoStartTime = null;
+
+    function salvaStatoTimer() {
+      if (pomoAttivo && pomoStartTime) {
+        localStorage.setItem("pomo_startTime", pomoStartTime.toString());
+        localStorage.setItem("pomo_mode", pomoInPausa ? "pausa" : "studio");
+      }
+    }
+
+    function cancellaStatoTimer() {
+      localStorage.removeItem("pomo_startTime");
+      localStorage.removeItem("pomo_mode");
+    }
+
+    function ripristinaTimer() {
+      const startTime = localStorage.getItem("pomo_startTime");
+      const mode = localStorage.getItem("pomo_mode");
+      if (!startTime || !mode) return;
+      const ora = Date.now();
+      const elapsed = Math.floor((ora - parseInt(startTime)) / 1000);
+      const durata = mode === "pausa" ? DURATA_PAUSA : DURATA_STUDIO;
+      const rimanente = durata - elapsed;
+      pomoInPausa = mode === "pausa";
+      pomoStartTime = parseInt(startTime);
+      if (rimanente <= 0) {
+        cancellaStatoTimer();
+        pomoInPausa = !pomoInPausa;
+        pomoSecondi = pomoInPausa ? DURATA_PAUSA : DURATA_STUDIO;
+        pomoAttivo = false;
+        document.getElementById("pomoMessaggio").textContent = pomoInPausa ? "Sessione finita mentre eri via! Inizia la pausa 🎉" : "Pausa finita! Pronto per studiare? 💪";
+      } else {
+        pomoSecondi = rimanente;
+        pomoUltimoMinuto = Math.floor((durata - rimanente) / 60);
+        avviaPomodoro();
+      }
+      aggiornaTimerUI();
+    }
+
+    function aggiornaTimerUI() {
+      const minuti = Math.floor(pomoSecondi / 60);
+      const secondi = pomoSecondi % 60;
+      document.getElementById("pomoTimer").textContent = `${String(minuti).padStart(2, '0')}:${String(secondi).padStart(2, '0')}`;
+      const durataTotale = pomoInPausa ? DURATA_PAUSA : DURATA_STUDIO;
+      const progresso = ((durataTotale - pomoSecondi) / durataTotale) * 100;
+      document.getElementById("pomoFill").style.width = progresso + "%";
+      const stato = document.getElementById("pomoStato");
+      const fill = document.getElementById("pomoFill");
+      if (pomoInPausa) { stato.textContent = "Pausa"; stato.classList.add("pausa"); fill.classList.add("pausa"); }
+      else { stato.textContent = "Studio"; stato.classList.remove("pausa"); fill.classList.remove("pausa"); }
+    }
+
+    function suonaNotifica(tipo) {
+      if (navigator.vibrate) {
+        navigator.vibrate(tipo === 'studio' ? [200, 100, 200, 100, 400] : [400, 100, 200]);
+      }
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const freqs = tipo === 'studio' ? [523, 659, 784] : [659, 523];
+        freqs.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = freq; osc.type = 'sine';
+          const t = ctx.currentTime + i * (tipo === 'studio' ? 0.25 : 0.3);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t); osc.stop(t + 0.4);
+        });
+      } catch(e) { console.log('Audio non disponibile:', e); }
+    }
+
+    function togglePomodoro() { pomoAttivo ? pausaPomodoro() : avviaPomodoro(); }
+
+    function avviaPomodoro() {
+      pomoAttivo = true;
+      pomoStartTime = Date.now() - ((pomoInPausa ? DURATA_PAUSA : DURATA_STUDIO) - pomoSecondi) * 1000;
+      salvaStatoTimer();
+      document.getElementById("pomoPlayBtn").textContent = "⏸";
+      document.getElementById("pomoMessaggio").textContent = "";
+      pomoInterval = setInterval(async () => {
+        pomoSecondi--;
+        if (!pomoInPausa) {
+          const minutiPassati = Math.floor((DURATA_STUDIO - pomoSecondi) / 60);
+          if (minutiPassati > pomoUltimoMinuto) {
+            pomoUltimoMinuto = minutiPassati;
+            pomoMinutiTotali++;
+            document.getElementById("pomoMinuti").textContent = pomoMinutiTotali;
+            await aggiungiXpPomodoro(1);
+          }
+        }
+        aggiornaTimerUI();
+        if (pomoSecondi <= 0) {
+          clearInterval(pomoInterval);
+          pomoAttivo = false;
+          cancellaStatoTimer();
+          if (!pomoInPausa) {
+            pomoCount++;
+            pomoTotali++;
+            pomoConsecutivi++;
+            localStorage.setItem("pomo_totali", pomoTotali.toString());
+            document.getElementById("pomoCount").textContent = pomoCount;
+            await aggiungiXpPomodoro(10);
+            mostraToast("Pomodoro completato! +10 XP bonus 🍅");
+            document.getElementById("pomoMessaggio").textContent = "Ottimo lavoro! Inizia la pausa 🎉";
+            suonaNotifica('studio');
+            inviaNotifica("Pomodoro completato!", "Hai guadagnato +10 XP bonus. Prenditi una pausa!", "🍅");
+            // Controlla achievement pomodoro
+            await controllaAchievements({ pomoCount, pomoTotali, pomoConsecutivi });
+            pomoInPausa = true;
+            pomoSecondi = DURATA_PAUSA;
+          } else {
+            pomoInPausa = false;
+            pomoSecondi = DURATA_STUDIO;
+            document.getElementById("pomoMessaggio").textContent = "Pausa finita! Pronto per studiare? 💪";
+            suonaNotifica('pausa');
+            inviaNotifica("Pausa finita!", "È ora di tornare a studiare. Forza! 💪", "⏰");
+          }
+          document.getElementById("pomoPlayBtn").textContent = "▶";
+          aggiornaTimerUI();
+        }
+      }, 1000);
+    }
+
+    function pausaPomodoro() {
+      pomoAttivo = false; clearInterval(pomoInterval); cancellaStatoTimer();
+      pomoConsecutivi = 0; // reset consecutivi se metti in pausa
+      document.getElementById("pomoPlayBtn").textContent = "▶";
+    }
+
+    function resetPomodoro() {
+      clearInterval(pomoInterval); cancellaStatoTimer();
+      pomoAttivo = false; pomoInPausa = false; pomoSecondi = DURATA_STUDIO;
+      pomoUltimoMinuto = 0; pomoStartTime = null; pomoConsecutivi = 0;
+      document.getElementById("pomoPlayBtn").textContent = "▶";
+      document.getElementById("pomoMessaggio").textContent = "";
+      aggiornaTimerUI();
+    }
+
+    function saltaFase() {
+      clearInterval(pomoInterval); cancellaStatoTimer();
+      pomoAttivo = false; pomoInPausa = !pomoInPausa;
+      pomoSecondi = pomoInPausa ? DURATA_PAUSA : DURATA_STUDIO;
+      pomoUltimoMinuto = 0; pomoStartTime = null; pomoConsecutivi = 0;
+      document.getElementById("pomoPlayBtn").textContent = "▶";
+      document.getElementById("pomoMessaggio").textContent = "";
+      aggiornaTimerUI();
+    }
+
+    async function aggiungiXpPomodoro(xp) {
+      if (!utente) return;
+      try {
+        const res = await fetch(`${API}/auth/studia/pomodoro`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ utenteId: utente.id, xp: xp }) });
+        const data = await res.json();
+        if (data.success) {
+          const vecchioLivello = utente.livello;
+          utente.xp = data.xp; utente.livello = data.livello; utente.streak = data.streak; utente.titolo = data.titolo;
+          localStorage.setItem("athenix_utente", JSON.stringify(utente));
+          pomoXpGiorno += xp;
+          document.getElementById("pomoXpGiorno").textContent = pomoXpGiorno;
+          aggiornaXpUI();
+          if (data.livello > vecchioLivello) {
+            setTimeout(() => {
+              document.getElementById("levelupSub").textContent = `Sei al livello ${data.livello} 🚀`;
+              document.getElementById("levelupNuovoTitolo").textContent = data.titolo !== utente.titolo ? `Nuovo titolo: ${data.titolo}` : data.titolo;
+              document.getElementById("levelupOverlay").classList.add("show");
+            }, 800);
+          }
+          // Controlla achievement XP e livello
+          await controllaAchievements({});
+        }
+      } catch (err) { console.error("Errore aggiunta XP:", err); }
+    }
+  </script>
+</body>
+</html>
